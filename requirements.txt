@@ -1,0 +1,7 @@
+streamlit
+pandas
+opencv-python-headless
+scipy
+moviepy
+kaggle
+numpy

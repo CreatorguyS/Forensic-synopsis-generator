@@ -1,0 +1,18 @@
+{
+  "id": "directorprince/forensic-video-retrieval-gpu",
+  "title": "Forensic Video Retrieval GPU",
+  "code_file": "capstone final code.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "dataset_sources": [
+    "directorprince/video-data",
+    "directorprince/query-image",
+    "directorprince/forensic-input"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "accelerator": "NVIDIA_TESLA_T4"
+}

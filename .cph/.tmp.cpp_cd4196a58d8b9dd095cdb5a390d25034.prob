@@ -1,0 +1,1 @@
+{"name":"Local: tmp","url":"c:\\complete web development camp\\project\\video_retrieval\\tmp.cpp","tests":[{"id":1772033229751,"input":"4\n1\n37\n645\n2374236843276813\n","output":"0\n1\n2\n12\n"}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"c:\\complete web development camp\\project\\video_retrieval\\tmp.cpp","group":"local","local":true}

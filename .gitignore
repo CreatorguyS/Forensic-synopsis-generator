@@ -1,0 +1,28 @@
+# Streamlit / Python ignored folders
+__pycache__/
+*.pyc
+.streamlit/config.toml
+.streamlit/secrets.toml
+
+# Exclude large binaries, datasets, model weights and media files project-wide
+*.mp4
+*.avi
+*.pdf
+*.zip
+*.pt
+*.npy
+*.pth
+*.h5
+
+# Local job and test directories
+jobs/
+test_dir/
+final_results_*/
+model*/input_data/*
+!model*/input_data/dataset-metadata.json
+model*/final_results/*
+model*/kaggle_output/*
+
+# OS specific files
+.DS_Store
+Thumbs.db
