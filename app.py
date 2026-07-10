@@ -10,6 +10,15 @@ from uuid import uuid4
 
 os.environ["PYTHONIOENCODING"] = "utf-8"
 
+# --- Kaggle API Credentials Setup for Cloud Deployment ---
+if "KAGGLE_USERNAME" in st.secrets and "KAGGLE_KEY" in st.secrets:
+    os.environ["KAGGLE_USERNAME"] = st.secrets["KAGGLE_USERNAME"]
+    os.environ["KAGGLE_KEY"] = st.secrets["KAGGLE_KEY"]
+elif "kaggle" in st.secrets:
+    os.environ["KAGGLE_USERNAME"] = st.secrets["kaggle"].get("KAGGLE_USERNAME", "")
+    os.environ["KAGGLE_KEY"] = st.secrets["kaggle"].get("KAGGLE_KEY", "")
+
+
 def resize_and_pad(img, target_width=200, target_height=250):
     import cv2
     import numpy as np
