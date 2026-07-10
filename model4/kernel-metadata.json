@@ -1,0 +1,16 @@
+{
+  "id": "directorprince/forensic-model-4",
+  "title": "Forensic Model 4",
+  "code_file": "capstone final code.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "dataset_sources": [
+    "directorprince/forensic-input"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "accelerator": "NVIDIA_TESLA_T4"
+}

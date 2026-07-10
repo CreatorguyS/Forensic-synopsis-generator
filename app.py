@@ -465,6 +465,9 @@ def start_worker_thread():
                 elif selected_model == "Model 2 (Best Retrieval)":
                     model_dir = "model2"
                     kernel_id = "directorprince/forensic-model-2"
+                elif selected_model == "Model 4 (InsightFace + OSNet + CLAHE)":
+                    model_dir = "model4"
+                    kernel_id = "directorprince/forensic-model-4"
                 else:
                     model_dir = "model3"
                     kernel_id = "directorprince/forensic-video-retrieval-gpu"
@@ -759,6 +762,7 @@ if 'job_id' not in st.session_state:
     st.session_state.job_id = None
 
 selected_model = st.sidebar.selectbox("Choose AI Model", [
+    "Model 4 (InsightFace + OSNet + CLAHE)",
     "Model 3 (YOLOv8 + EffNet + Indexing)",
     "Model 1 (DeepFace)", 
     "Model 2 (Best Retrieval)"
