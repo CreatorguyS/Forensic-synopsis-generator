@@ -8,8 +8,6 @@
   "enable_gpu": "true",
   "enable_internet": "true",
   "dataset_sources": [
-    "directorprince/video-data",
-    "directorprince/query-image",
     "directorprince/forensic-input"
   ],
   "competition_sources": [],
