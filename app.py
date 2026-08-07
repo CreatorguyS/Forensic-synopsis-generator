@@ -536,8 +536,29 @@ def start_worker_thread():
                 job_statuses[job_id]['status'] = f"Triggering Kaggle Kernel ({model_dir})..."
                 job_statuses[job_id]['progress'] = 0.3
                 
-                # Trigger specific Kernel
-                subprocess.run([sys.executable, "-m", "kaggle", "kernels", "push", "-p", model_dir], check=True, capture_output=True)
+                # Trigger specific Kernel (with retry on network timeout)
+                for attempt in range(3):
+                    try:
+                        job_statuses[job_id]['status'] = f"Pushing kernel to Kaggle (attempt {attempt+1}/3)..."
+                        subprocess.run(
+                            [sys.executable, "-m", "kaggle", "kernels", "push", "-p", model_dir],
+                            check=True, capture_output=True, timeout=120
+                        )
+                        break  # success
+                    except subprocess.TimeoutExpired:
+                        if attempt == 2:
+                            raise RuntimeError("Kaggle kernel push timed out after 3 attempts. Check your internet connection.")
+                        job_statuses[job_id]['status'] = f"Kaggle push timed out, retrying ({attempt+2}/3)..."
+                        time.sleep(10)
+                    except subprocess.CalledProcessError as e:
+                        err_msg = e.stderr.decode(errors='replace') if e.stderr else str(e)
+                        if 'timed out' in err_msg.lower() or 'connection' in err_msg.lower():
+                            if attempt == 2:
+                                raise RuntimeError(f"Kaggle API connection failed after 3 attempts: {err_msg[:200]}")
+                            job_statuses[job_id]['status'] = f"Connection error, retrying ({attempt+2}/3)..."
+                            time.sleep(10)
+                        else:
+                            raise
                 
                 # Poll Kernel and direct outputs to job-specific directory
                 OUTPUT_DIR = os.path.join(job_dir, "outputs")
