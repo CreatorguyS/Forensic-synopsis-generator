@@ -499,6 +499,11 @@ def start_worker_thread():
                 if img_bytes:
                     with open(img_path, "wb") as f:
                         f.write(img_bytes)
+                    
+                # Create a unique marker file to accurately track Kaggle processing status
+                marker_file = f"job_{job_id}.txt"
+                with open(os.path.join(input_dir, marker_file), "w") as f:
+                    f.write("ready")
                 
                 # Save persistent copies to the job-specific inputs directory
                 with open(os.path.join(input_copy_dir, vid_name), "wb") as f:
@@ -522,7 +527,7 @@ def start_worker_thread():
                 for _ in range(60):
                     time.sleep(5)
                     res = subprocess.run([sys.executable, "-m", "kaggle", "datasets", "files", "directorprince/forensic-input"], capture_output=True, text=True)
-                    if vid_name in res.stdout:
+                    if marker_file in res.stdout:
                         time.sleep(5) # Give it an extra 5 seconds just to be safe
                         break
 
