@@ -514,6 +514,13 @@ def start_worker_thread():
                         subprocess.run([sys.executable, "-m", "kaggle", "datasets", "create", "-p", input_dir], check=True, capture_output=True)
                     except subprocess.CalledProcessError:
                         raise e
+                        
+                job_statuses[job_id]['status'] = "Waiting for dataset processing..."
+                for _ in range(20):
+                    time.sleep(6)
+                    res = subprocess.run([sys.executable, "-m", "kaggle", "datasets", "status", "directorprince/forensic-input"], capture_output=True, text=True)
+                    if "ready" in res.stdout.strip().lower():
+                        break
 
                 job_statuses[job_id]['status'] = f"Triggering Kaggle Kernel ({model_dir})..."
                 job_statuses[job_id]['progress'] = 0.3
@@ -541,6 +548,17 @@ def start_worker_thread():
                 
                 os.makedirs(OUTPUT_DIR, exist_ok=True)
                 subprocess.run([sys.executable, "-m", "kaggle", "kernels", "output", kernel_id, "-p", OUTPUT_DIR], check=False, capture_output=True)
+                
+                # Extract any downloaded zip files (Kaggle zips outputs if there are multiple files)
+                import zipfile
+                for f in os.listdir(OUTPUT_DIR):
+                    if f.endswith('.zip'):
+                        zip_path = os.path.join(OUTPUT_DIR, f)
+                        try:
+                            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                                zip_ref.extractall(OUTPUT_DIR)
+                        except Exception as e:
+                            print(f"Error extracting {zip_path}: {e}")
                 
                 # Find output videos (could be .mp4 or .avi depending on the model)
                 output_videos = []
