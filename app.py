@@ -515,11 +515,12 @@ def start_worker_thread():
                     except subprocess.CalledProcessError:
                         raise e
                         
-                job_statuses[job_id]['status'] = "Waiting for dataset processing..."
-                for _ in range(20):
-                    time.sleep(6)
-                    res = subprocess.run([sys.executable, "-m", "kaggle", "datasets", "status", "directorprince/forensic-input"], capture_output=True, text=True)
-                    if "ready" in res.stdout.strip().lower():
+                job_statuses[job_id]['status'] = f"Waiting for Kaggle to process {vid_name} (this can take 1-3 mins for large videos)..."
+                for _ in range(60):
+                    time.sleep(5)
+                    res = subprocess.run([sys.executable, "-m", "kaggle", "datasets", "files", "directorprince/forensic-input"], capture_output=True, text=True)
+                    if vid_name in res.stdout:
+                        time.sleep(5) # Give it an extra 5 seconds just to be safe
                         break
 
                 job_statuses[job_id]['status'] = f"Triggering Kaggle Kernel ({model_dir})..."
