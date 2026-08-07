@@ -523,8 +523,10 @@ def start_worker_thread():
                     except subprocess.CalledProcessError:
                         raise e
                         
-                job_statuses[job_id]['status'] = f"Waiting for Kaggle to process {vid_name} (this can take 1-3 mins for large videos)..."
-                for _ in range(60):
+                dataset_wait_start = time.time()
+                for _ in range(180): # Wait up to 15 minutes
+                    elapsed_wait = int(time.time() - dataset_wait_start)
+                    job_statuses[job_id]['status'] = f"Elapsed: {elapsed_wait}s | Waiting for Kaggle to process {vid_name}..."
                     time.sleep(5)
                     res = subprocess.run([sys.executable, "-m", "kaggle", "datasets", "files", "directorprince/forensic-input"], capture_output=True, text=True)
                     if marker_file in res.stdout:
