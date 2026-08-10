@@ -930,7 +930,7 @@ if st.session_state.job_id:
                     _, img_mid_col, _ = st.columns([1.5, 2, 1.5])
                     with img_mid_col:
                         st.markdown("### 🎯 Suspect Query Image")
-                        st.image(query_img_path, use_container_width=True)
+                        st.image(query_img_path, width="stretch")
                         
                 # Retrieve target_id by parsing job_meta.json
                 target_id = None
@@ -969,7 +969,7 @@ if st.session_state.job_id:
                             crop_file = extract_single_candidate_crop(job_dir, v_name, pid, rep_f)
                             if crop_file and os.path.exists(crop_file):
                                 caption = f"Person ID: {pid} | Score: {score:.2f}"
-                                st.image(crop_file, caption=caption, use_container_width=True)
+                                st.image(crop_file, caption=caption, width="stretch")
                                 
                     # Multi-selection dropdown
                     st.write("")
@@ -1120,7 +1120,7 @@ if st.session_state.job_id:
                             for k, frame in enumerate(top_frames[:10]):
                                 with img_cols[k % 5]:
                                     caption = f"Frame {frame['frame_index']} | Conf: {frame['yolo_conf']:.2f}"
-                                    st.image(frame['crop_path'], caption=caption, use_container_width=True)
+                                    st.image(frame['crop_path'], caption=caption, width="stretch")
                                     
                     st.write("---")
                     st.subheader("🎬 Video Synopsis & Evidence Tracks")
