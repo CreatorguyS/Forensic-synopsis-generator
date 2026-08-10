@@ -465,7 +465,7 @@ def start_worker_thread():
                 if selected_model == "Model 1 (DeepFace)":
                     model_dir = "model1"
                     kernel_id = "directorprince/forensic-model-1"
-                elif selected_model == "Model 2 (Best Retrieval)":
+                elif selected_model == "Model 2 (YOLO + InsightFace + OSNet + FAISS)":
                     model_dir = "model2"
                     kernel_id = "directorprince/forensic-model-2"
                 elif selected_model == "Model 4 (InsightFace + OSNet + CLAHE)":
@@ -824,7 +824,7 @@ selected_model = st.sidebar.selectbox("Choose AI Model", [
     "Model 4 (InsightFace + OSNet + CLAHE)",
     "Model 3 (YOLOv8 + EffNet + Indexing)",
     "Model 1 (DeepFace)", 
-    "Model 2 (Best Retrieval)"
+    "Model 2 (YOLO + InsightFace + OSNet + FAISS)"
 ])
 
 # --- History / Load Past Job ---
