@@ -579,10 +579,12 @@ def start_worker_thread():
                 job_statuses[job_id]['progress'] = 0.97
                 
                 os.makedirs(OUTPUT_DIR, exist_ok=True)
-                subprocess.run([sys.executable, "-m", "kaggle", "kernels", "output", kernel_id, "-p", OUTPUT_DIR], check=False, capture_output=True)
+                res_output = subprocess.run([sys.executable, "-m", "kaggle", "kernels", "output", kernel_id, "-p", OUTPUT_DIR], check=False, capture_output=True, text=True)
+                if res_output.returncode != 0:
+                    print(f"Kaggle output download error: {res_output.stderr}")
                 
-                # Extract any downloaded zip files (Kaggle zips outputs if there are multiple files)
-                import zipfile
+                # Extract any downloaded zip or tar files (Kaggle sometimes returns .tar.gz now)
+                import zipfile, tarfile
                 for f in os.listdir(OUTPUT_DIR):
                     if f.endswith('.zip'):
                         zip_path = os.path.join(OUTPUT_DIR, f)
@@ -591,6 +593,13 @@ def start_worker_thread():
                                 zip_ref.extractall(OUTPUT_DIR)
                         except Exception as e:
                             print(f"Error extracting {zip_path}: {e}")
+                    elif f.endswith('.tar') or f.endswith('.tar.gz') or f.endswith('.tgz'):
+                        tar_path = os.path.join(OUTPUT_DIR, f)
+                        try:
+                            with tarfile.open(tar_path, 'r') as tar_ref:
+                                tar_ref.extractall(path=OUTPUT_DIR)
+                        except Exception as e:
+                            print(f"Error extracting {tar_path}: {e}")
                 
                 # Find output videos (could be .mp4 or .avi depending on the model)
                 output_videos = []
