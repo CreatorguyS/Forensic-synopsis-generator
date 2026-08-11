@@ -10,6 +10,8 @@ from uuid import uuid4
 
 os.environ["PYTHONIOENCODING"] = "utf-8"
 
+st.set_page_config(page_title="Master Controller | Forensic Video Retrieval", page_icon="🕵️", layout="wide")
+
 # --- Kaggle API Credentials Setup for Cloud Deployment ---
 try:
     if "KAGGLE_USERNAME" in st.secrets and "KAGGLE_KEY" in st.secrets:
@@ -774,7 +776,6 @@ def start_worker_thread():
 start_worker_thread()
 
 # --- UI IMPLEMENTATION ---
-st.set_page_config(page_title="Master Controller | Forensic Video Retrieval", page_icon="🕵️", layout="wide")
 st.title("🕵️ Forensic Master Controller")
 st.markdown("Run multiple totally different AI models on Kaggle GPU from one central interface.")
 
