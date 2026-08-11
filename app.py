@@ -290,7 +290,10 @@ def local_generate_evidence(job_dir, vid_name, pid, rep_frame, fps):
                 template_img = frame[max(0,y1):min(frame.shape[0],y2), max(0,x1):min(frame.shape[1],x2)].copy()
                 
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 3)
-                cv2.putText(frame, f"Target: ID {pid}", (x1, max(0, y1-10)), \
+                
+                conf = float(bx.get('yolo_conf', 0.0)) if 'yolo_conf' in bx else 0.0
+                label_text = f"Target: ID {pid} | Conf: {conf:.2f}"
+                cv2.putText(frame, label_text, (x1, max(0, y1-10)), \
                             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
             else:
                 if template_img is not None and template_img.size > 0 and last_box is not None:
@@ -371,7 +374,10 @@ def local_generate_synopsis(job_dir, vid_name, pids, intervals, fps, output_subd
                     curr_pid = int(bx['track_id'])
                     x1, y1, x2, y2 = int(bx['x1']), int(bx['y1']), int(bx['x2']), int(bx['y2'])
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 3)
-                    cv2.putText(frame, f"Target: ID {curr_pid}", (x1, max(0, y1-10)), \
+                    
+                    conf = float(bx.get('yolo_conf', 0.0)) if 'yolo_conf' in bx else 0.0
+                    label_text = f"Target: ID {curr_pid} | Conf: {conf:.2f}"
+                    cv2.putText(frame, label_text, (x1, max(0, y1-10)), \
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
                 
                 cv2.putText(frame, f"IDs: {pids_label} | Time: {f/fps:.2f}s", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
@@ -1140,6 +1146,44 @@ if st.session_state.job_id:
                 _, mid_col, _ = st.columns([1.5, 3, 1.5])
                 with mid_col:
                     st.video(job['result_path'])
+                    
+            if not job['error'] and (job.get('result_paths') or job.get('result_path')):
+                st.write("---")
+                st.subheader("📊 Performance Metrics")
+                metrics_csv = None
+                
+                try:
+                    job_dir = os.path.join("jobs", f"job_{st.session_state.job_id}")
+                    for root, _, files in os.walk(os.path.join(job_dir, "outputs")):
+                        if "tracked_persons.csv" in files:
+                            metrics_csv = os.path.join(root, "tracked_persons.csv")
+                            break
+                except Exception:
+                    pass
+                    
+                if metrics_csv and os.path.exists(metrics_csv):
+                    import pandas as pd
+                    try:
+                        df_metrics = pd.read_csv(metrics_csv)
+                        total_detections = len(df_metrics)
+                        unique_persons = df_metrics["track_id"].nunique() if "track_id" in df_metrics else 0
+                        avg_conf = df_metrics["yolo_conf"].mean() if "yolo_conf" in df_metrics else 0.0
+                        frames_processed = df_metrics["frame_index"].nunique() if "frame_index" in df_metrics else 0
+                        
+                        m1, m2, m3, m4 = st.columns(4)
+                        m1.metric("Unique Suspects", unique_persons)
+                        m2.metric("Total Detections", total_detections)
+                        m3.metric("Frames Processed", frames_processed)
+                        m4.metric("Avg Confidence", f"{avg_conf:.2f}")
+                        
+                        if "frame_index" in df_metrics and "yolo_conf" in df_metrics:
+                            st.write("##### Confidence Score Over Time")
+                            chart_data = df_metrics.groupby("frame_index")["yolo_conf"].mean().reset_index()
+                            st.line_chart(chart_data.set_index("frame_index"))
+                    except Exception as e:
+                        st.warning(f"Could not load metrics: {e}")
+                else:
+                    st.info("Metrics data not found for this job.")
         else:
             time.sleep(2)
             st.rerun()
