@@ -1170,11 +1170,50 @@ if st.session_state.job_id:
                         avg_conf = df_metrics["yolo_conf"].mean() if "yolo_conf" in df_metrics else 0.0
                         frames_processed = df_metrics["frame_index"].nunique() if "frame_index" in df_metrics else 0
                         
+                        # --- New Advanced Metrics ---
+                        avg_track_length = 0
+                        if "track_id" in df_metrics:
+                            avg_track_length = df_metrics.groupby("track_id").size().mean()
+                            
+                        detection_density = 0.0
+                        if "frame_index" in df_metrics and len(df_metrics) > 0:
+                            min_f = df_metrics["frame_index"].min()
+                            max_f = df_metrics["frame_index"].max()
+                            total_span = (max_f - min_f) + 1
+                            if total_span > 0:
+                                detection_density = (frames_processed / total_span) * 100
+                                
+                        avg_clarity = df_metrics["laplacian"].mean() if "laplacian" in df_metrics else 0.0
+                        
+                        target_sim = "N/A"
+                        try:
+                            meta_path_m = None
+                            for root2, _, files2 in os.walk(os.path.join(job_dir, "outputs")):
+                                if "job_meta.json" in files2:
+                                    meta_path_m = os.path.join(root2, "job_meta.json")
+                                    break
+                            if meta_path_m and os.path.exists(meta_path_m):
+                                import json
+                                with open(meta_path_m, "r") as fm:
+                                    jm = json.load(fm)
+                                    top_m = jm.get("top_matches", [])
+                                    if top_m:
+                                        target_sim = f"{top_m[0].get('final_score', 0)*100:.1f}%"
+                        except Exception:
+                            pass
+                        
                         m1, m2, m3, m4 = st.columns(4)
                         m1.metric("Unique Suspects", unique_persons)
                         m2.metric("Total Detections", total_detections)
                         m3.metric("Frames Processed", frames_processed)
                         m4.metric("Avg Confidence", f"{avg_conf:.2f}")
+                        
+                        st.write("###### Advanced Reference-Free Metrics")
+                        a1, a2, a3, a4 = st.columns(4)
+                        a1.metric("Target Similarity", target_sim, help="Biometric similarity score of the top matched suspect.")
+                        a2.metric("Tracking Stability", f"{avg_track_length:.1f} frames/ID", help="Average lifespan of a bounding box track (longer is better).")
+                        a3.metric("Detection Density", f"{detection_density:.1f}%", help="Percentage of the video span where at least one person was detected.")
+                        a4.metric("Avg Image Clarity", f"{avg_clarity:.1f}", help="Average Laplacian variance of bounding box crops (higher is sharper).")
                         
                         if "frame_index" in df_metrics and "yolo_conf" in df_metrics:
                             st.write("##### Confidence Score Over Time")
