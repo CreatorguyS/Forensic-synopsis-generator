@@ -466,6 +466,7 @@ def start_worker_thread():
     def worker():
         while True:
             job_id, video_bytes, img_bytes, vid_name, img_name, selected_model = job_queue.get()
+            job_statuses.setdefault(job_id, {'status': '', 'progress': 0.0, 'completed': False, 'result_path': None, 'error': None})
             job_statuses[job_id]['status'] = "Processing on Kaggle GPU..."
             job_statuses[job_id]['progress'] = 0.1
             
@@ -763,16 +764,18 @@ def start_worker_thread():
                 job_statuses[job_id]['completed'] = True
                 
             except subprocess.CalledProcessError as e:
-                job_statuses[job_id]['status'] = "Failed!"
+                st_entry = job_statuses.setdefault(job_id, {})
+                st_entry['status'] = "Failed!"
                 err_msg = str(e)
                 if e.stderr: err_msg += f" | STDERR: {e.stderr.decode('utf-8', errors='ignore').strip()}"
                 if e.stdout: err_msg += f" | STDOUT: {e.stdout.decode('utf-8', errors='ignore').strip()}"
-                job_statuses[job_id]['error'] = err_msg
-                job_statuses[job_id]['completed'] = True
+                st_entry['error'] = err_msg
+                st_entry['completed'] = True
             except Exception as e:
-                job_statuses[job_id]['status'] = "Failed!"
-                job_statuses[job_id]['error'] = str(e)
-                job_statuses[job_id]['completed'] = True
+                st_entry = job_statuses.setdefault(job_id, {})
+                st_entry['status'] = "Failed!"
+                st_entry['error'] = str(e)
+                st_entry['completed'] = True
                 
             job_queue.task_done()
 
@@ -780,7 +783,10 @@ def start_worker_thread():
     t.start()
     return t
 
-start_worker_thread()
+_worker_thread = start_worker_thread()
+if not _worker_thread.is_alive():
+    start_worker_thread.clear()
+    _worker_thread = start_worker_thread()
 
 # --- UI IMPLEMENTATION ---
 st.title("🕵️ Forensic Master Controller")
@@ -838,11 +844,13 @@ selected_model = st.sidebar.selectbox("Choose AI Model", [
 if st.sidebar.button("🛑 Clear Pending Queue"):
     while not job_queue.empty():
         try:
-            job_queue.get_nowait()
+            qid, *_ = job_queue.get_nowait()
+            if qid in job_statuses:
+                job_statuses[qid]['status'] = "Cancelled"
+                job_statuses[qid]['completed'] = True
             job_queue.task_done()
         except Exception:
             break
-    job_statuses.clear()
     st.session_state.job_id = None
     st.rerun()
 
@@ -881,12 +889,12 @@ if st.button("Generate Forensic Synopsis", type="primary"):
             'error': None
         }
         
-        img_bytes = uploaded_image.getbuffer() if uploaded_image else None
+        img_bytes = uploaded_image.getvalue() if uploaded_image else None
         img_name = uploaded_image.name if uploaded_image else "auto_query.jpg"
         
         job_queue.put((
             new_job_id, 
-            uploaded_video.getbuffer(), 
+            uploaded_video.getvalue(), 
             img_bytes,
             uploaded_video.name,
             img_name,
