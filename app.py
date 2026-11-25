@@ -835,6 +835,17 @@ selected_model = st.sidebar.selectbox("Choose AI Model", [
     "Model 2 (YOLO + InsightFace + OSNet + FAISS)"
 ])
 
+if st.sidebar.button("🛑 Clear Pending Queue"):
+    while not job_queue.empty():
+        try:
+            job_queue.get_nowait()
+            job_queue.task_done()
+        except Exception:
+            break
+    job_statuses.clear()
+    st.session_state.job_id = None
+    st.rerun()
+
 # --- History / Load Past Job ---
 if os.path.exists("jobs"):
     past_jobs = [d.replace("job_", "") for d in os.listdir("jobs") if d.startswith("job_")]
