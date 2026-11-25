@@ -6,6 +6,7 @@ import json
 import threading
 import queue
 import sys
+import shutil
 from uuid import uuid4
 
 os.environ["PYTHONIOENCODING"] = "utf-8"
@@ -841,6 +842,11 @@ if os.path.exists("jobs"):
         selected_past_job = st.sidebar.selectbox("📂 Load Past Job Results", ["Select a job..."] + sorted(past_jobs, reverse=True))
         if selected_past_job != "Select a job...":
             st.session_state.job_id = selected_past_job
+            if st.sidebar.button("🗑️ Delete Selected Job", key=f"del_{selected_past_job}"):
+                shutil.rmtree(os.path.join("jobs", f"job_{selected_past_job}"), ignore_errors=True)
+                if st.session_state.get("job_id") == selected_past_job:
+                    st.session_state.job_id = None
+                st.rerun()
 
 col1, col2 = st.columns(2)
 with col1:
